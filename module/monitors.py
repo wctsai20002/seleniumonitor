@@ -13,13 +13,9 @@ from module import settings
 class SeleniumScheduler():
     def __init__(self, config):
         self.config = config
-
-        self.candidates = Queue()
-        self.nonupdated = Queue()
-        self.completed = Queue()
         
         self.atom_nums = self.config['atom_nums']
-        self.atoms = [Atom(self.config, self.candidates, self.nonupdated, self.completed, atom_index) for atom_index in range(self.atom_nums)]
+        self.atoms = [Atom(self.config, atom_index) for atom_index in range(self.atom_nums)]
         
         self.load_data()
 
@@ -129,8 +125,9 @@ class Timer():
                 return
 
             index = self.find_index(web_container.id)
-            web_container.time_value = time.time()
-            self.update_manager_list(web_container, index)
+            if index:
+                web_container.time_value = time.time()
+                self.update_manager_list(web_container, index)
             
     def find_index(self, id):
         id_index = None
@@ -221,11 +218,13 @@ class WebContainer():
         self.md5 = hashlib.md5((self.text).encode('utf8')).hexdigest()
 
 class Atom():
-    def __init__(self, config, candidates, nonupdated, completed, atom_index):
+    def __init__(self, config, atom_index):
         self.config = config
-        self.candidates = candidates
-        self.nonupdated = nonupdated
-        self.completed = completed
+
+        self.candidates = Queue()
+        self.nonupdated = Queue()
+        self.completed = Queue()
+
         self.atom_index = atom_index
 
         self.timer = Timer(self.config, self.candidates, self.completed)

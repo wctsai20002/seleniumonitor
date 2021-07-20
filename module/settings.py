@@ -10,13 +10,14 @@ class ContainerSetting():
     def __init__(self, url, interval):
         self.url = url
         self.interval = interval
-        self.pause = False
         self.tags = []
-        self.title = ''
+        self.title = url
         self.css_selector = ''
         self.ignore_css_selector = ''
         self.ignore_text = ''
         self.notification_emails = []
+        self.pause = False
+        self.url_as_title = True
         self.last_error = False
 
     def set_interval(self, interval):
@@ -27,10 +28,19 @@ class ContainerSetting():
 
     def set_emails(self, emails):
         self.notification_emails = emails
+    
+    def set_url(self, url):
+        self.url = url
+        if self.url_as_title:
+            self.title = self.url
+    
+    def set_title(self, title):
+        self.title = title
+        self.url_as_title = not self.title
 
     def update(self, url, interval, title, tags, emails):
-        self.url = url
-        self.interval = interval
-        self.title = title
+        self.set_url(url)
+        self.set_interval(interval)
+        self.set_title(title)
         self.set_tags(tags)
-        self.notification_emails = emails
+        self.set_emails(emails)

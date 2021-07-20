@@ -1,4 +1,4 @@
-from wtforms import Form, BooleanField, StringField, PasswordField, validators, IntegerField, fields, TextAreaField, Field
+from wtforms import Form, BooleanField, StringField, PasswordField, validators, IntegerField, FloatField, fields, TextAreaField, Field
 from wtforms import widgets
 from wtforms.validators import ValidationError
 from wtforms.fields import html5
@@ -100,7 +100,7 @@ class ContainerForm(Form):
     url = html5.URLField('URL', [validators.URL(require_tld=False)])
     title = StringField('Title')
     tags = StringField('Tags', [validators.Optional(), validators.Length(max=35)])
-    interval = html5.IntegerField('Maximum time in minutes until recheck', [validators.Optional(), validators.NumberRange(min=1)])
+    interval = FloatField('Maximum time in seconds until recheck', [validators.Optional(), validators.NumberRange(min=1)])
     css_selector = StringField('CSS Filter')
 
     ignore_text = StringListField('Ignore Text', [ListRegex()])
@@ -110,10 +110,9 @@ class ContainerForm(Form):
 
 
 class SettingForm(Form):
-
     password = SaltyPasswordField()
 
-    interval = html5.IntegerField('Maximum time in minutes until recheck', [validators.NumberRange(min=1)])
+    interval = FloatField('Maximum time in seconds until recheck', [validators.NumberRange(min=1)])
     notification_emails = StringListField('Notification Email')
     extract_title_as_title = BooleanField('Extract <title> from document and use as watch title')
     trigger_notify = BooleanField('Send test notification on save')
