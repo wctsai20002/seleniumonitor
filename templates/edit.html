@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block content %}
+{% from '_helpers.jinja' import render_field %}
+<div class="edit-form monospaced-textarea">
+    <form class="pure-form pure-form-stacked" action="/edit/{{ container_id }}" method="POST">
+        <fieldset>
+            <div class="pure-control-group">
+                {{ render_field(form.url, placeholder="https://...", size=30, required=true) }}
+            </div>
+            <div class="pure-control-group">
+                {{ render_field(form.title, size=30) }}
+            </div>
+            <div class="pure-control-group">
+                {{ render_field(form.tags, size=30) }}
+            </div>
+            <div class="pure-control-group">
+                {{ render_field(form.interval, size=5) }}
+                <span class="pure-form-message-inline"> Set to blank to use the default global settings </span>
+            </div>
+            <div class="pure-control-group">
+                {{ render_field(form.css_selector, size=25, placeholder=".class-name or #some-id, or other CSS selector rule.") }}
+                <span class="pure-form-message-inline">
+                    Limit text to this CSS rule, only text matching this CSS rule is included. <br/>
+                </span>
+            </div>
+            
+            <fieldset class="pure-group">
+                {{ render_field(form.ignore_text, rows=5,  placeholder="Some text to ignore") }}
+                <span class="pure-form-message-inline">
+                    Each line processed separately, any line matching will be ignored. <br/>
+                    Regular Expression support, wrap the line in forward slash <b> /regex/ </b>.
+                </span>
+            </fieldset>
+
+            <fieldset class="pure-group">
+                {{ render_field(form.headers, rows=5, placeholder="Example\nCookie: foobar\nUser-Agent: wonderbra 1.0") }}
+            </fieldset>
+
+            <div class="pure-control-group">
+                {{ render_field(form.notification_emails, rows=5, placeholder="receiver@example.com") }}
+            </div>
+
+            <div class="pure-controls">
+                {{ render_field(form.trigger_notify, rows=5) }}
+            </div>
+            <div class="pure-control-group">
+                <button type="submit" class="pure-button pure-button-primary"> Save </button>
+            </div>
+            <br/>
+            <div class="pure-control-group">
+                <a href="/" class="pure-button button-small button-cancel"> Cancel </a>
+                <a href="/api/delete?id={{ container_id }}"
+                   class="pure-button button-small button-error "> Delete </a>
+            </div>
+        </fieldset>
+    </form>
+
+
+</div>
+
+{% endblock %}
