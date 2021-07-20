@@ -3,53 +3,49 @@
 {% block content %}
 
 <div id="settings">
-    <h1>Differences</h1>
+    <h1> Differences </h1>
     <form class="pure-form " action="" method="GET">
         <fieldset>
-
             <label for="diffWords" class="pure-checkbox">
-                <input type="radio" name="diff_type" id="diffWords" value="diffWords"/> Words</label>
+                <input type="radio" name="diff_type" id="diffWords" value="diffWords"/> Words </label>
             <label for="diffLines" class="pure-checkbox">
-                <input type="radio" name="diff_type" id="diffLines" value="diffLines" checked=""/> Lines</label>
-
+                <input type="radio" name="diff_type" id="diffLines" value="diffLines" checked=""/> Lines </label>
             <label for="diffChars" class="pure-checkbox">
-                <input type="radio" name="diff_type" id="diffChars" value="diffChars"/> Chars</label>
+                <input type="radio" name="diff_type" id="diffChars" value="diffChars"/> Chars </label>
 
             {% if versions|length >= 1 %}
-            <label for="diff-version">Compare newest (<span id="current-v-date"></span>) with</label>
-            <select id="diff-version" name="previous_version">
-                {% for version in versions %}
-                <option value="{{version}}" {% if version== current_previous_version %} selected="" {% endif %}>
-                    {{version}}
-                </option>
-                {% endfor %}
-            </select>
-            <button type="submit" class="pure-button pure-button-primary">Go</button>
+                <label for="diff-version"> Compare newest (<span id="current-v-date"></span>) with </label>
+                    <select id="diff-version" name="previous_version">
+                        {% for version in versions %}
+                            <option value="{{version}}" {% if version == previous_version %} selected="" {% endif %}>
+                                {{ version }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                <button type="submit" class="pure-button pure-button-primary"> Go </button>
             {% endif %}
         </fieldset>
     </form>
-    <del>Removed text</del>
-    <ins>Inserted Text</ins>
-    <a href="{{ url_for('preview_page', uuid=uuid) }}">Show current snapshot</a>
+    <del> Removed text </del>
+    <ins> Inserted Text </ins>
+    <a href="{{ url_for('preview_page', container_id=container_id) }}"> Show current snapshot </a>
 </div>
-
 <div id="diff-jump">
-    <a onclick="next_diff();">Jump</a>
+    <a onclick="next_diff();"> Jump </a>
 </div>
 <div id="diff-ui">
     <table>
         <tbody>
         <tr>
-            <!-- just proof of concept copied straight from github.com/kpdecker/jsdiff -->
-            <td id="a" style="display: none;">{{previous}}</td>
-            <td id="b" style="display: none;">{{newest}}</td>
+            <td id="a" style="display: none;"> {{ previous_content }} </td>
+            <td id="b" style="display: none;"> {{ latest_content }} </td>
             <td id="diff-col">
                 <span id="result"></span>
             </td>
         </tr>
         </tbody>
     </table>
-    Diff algorithm from the amazing <a href="https://github.com/kpdecker/jsdiff">github.com/kpdecker/jsdiff</a>
+    Diff algorithm from the amazing <a href="https://github.com/kpdecker/jsdiff"> github.com/kpdecker/jsdiff </a>
 
 </div>
 
@@ -97,8 +93,6 @@ function changed() {
 }
 
 window.onload = function() {
-
-
     /* Convert what is options from UTC time.time() to local browser time */
     var diffList=document.getElementById("diff-version");
     if (typeof(diffList) != 'undefined' && diffList != null) {
@@ -110,13 +104,11 @@ window.onload = function() {
 
     /* Set current version date as local time in the browser also */
     var current_v = document.getElementById("current-v-date");
-    var dateObject = new Date({{ newest_version_timestamp }}*1000);
+    var dateObject = new Date({{ latest_version }}*1000);
     current_v.innerHTML=dateObject.toLocaleString();
-
 
 	onDiffTypeChange(document.querySelector('#settings [name="diff_type"]:checked'));
 	changed();
-
 };
 
 a.onpaste = a.onchange =
@@ -163,8 +155,6 @@ function next_diff() {
       inputs.current=0;
     }
 }
-
-
 
 </script>
 

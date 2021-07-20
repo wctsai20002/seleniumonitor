@@ -211,14 +211,26 @@ class WebContainer():
         self.history = []
     
     def update(self, html):
-        if len(self.history) == 0:
-            self.history.append(PageData(html))
+        self.history.append(PageData(html))
 
     def get_encoding(self):
         self.encoding = requests.get(self.setting.url).encoding
     
     def get_latest_history(self):
         return self.history[-1]
+    
+    def get_previous_history(self, index=None):
+        index = -2 if index == None else index
+        return self.history[index]
+
+    def get_time_stamps(self):
+        return [page_data.time_stamp for page_data in self.history]
+
+    def find_version_index(self, time_stamp):
+        for index, version in enumerate(self.get_time_stamps()):
+            if str(version) == str(time_stamp):
+                return index
+        return None
 
 class PageData():
     def __init__(self, html):

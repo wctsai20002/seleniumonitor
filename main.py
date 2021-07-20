@@ -235,5 +235,27 @@ def preview_page(container_id):
         flash("No history found for the specified link !!!", "error")
         return redirect(url_for('index'))
 
+@app.route("/diff/<string:container_id>", methods=['GET'])
+@login_required
+def diff_history_page(container_id):
+    extra_stylesheets = ['/static/styles/diff.css']
+    previous_version = request.args.get('previous_version')
+    
+    web_container, atom_index, web_container_index = selenium_scheduler.find_container(container_id)
+    previous_version_index = web_container.find_version_index(previous_version) if previous_version else -2
+
+    if web_container:
+        latest_history = web_container.get_latest_history()
+        previous_history = web_container.get_previous_history(previous_version_index)
+        versions = web_container.get_time_stamps()
+        
+        output = render_template("diff.html", latest_content=latest_history.text, previous_content=previous_history.text, \
+                                    extra_stylesheets=extra_stylesheets, versions=versions, container_id=container_id,
+                                    latest_version=versions[-1], previous_version=versions[previous_version_index])
+        return output
+    else:
+        flash("No history found for the specified link !!!", "error")
+        return redirect(url_for('index'))
+
 if __name__ == "__main__":
     app.run(host=tools.get_ip(), port=config['port'])
