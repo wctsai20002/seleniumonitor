@@ -64,10 +64,10 @@
                         <a href="/api/checknow?uuid={{ web_container.id }}{% if request.args.get('tag') %}&tag={{request.args.get('tag')}}{% endif %}" class="pure-button button-small pure-button-primary"> Recheck </a>
                         <a href="/edit/{{ web_container.id }}" class="pure-button button-small pure-button-primary"> Edit </a>
                         {% if web_container.history | length >= 2 %}
-                            <a href="/diff/{{ web_container.id }}" target="{{web_container.id }}" class="pure-button button-small pure-button-primary"> Diff </a>
+                            <a href="/diff/{{ web_container.id }}" target="{{ web_container.id }}" class="pure-button button-small pure-button-primary"> Diff </a>
                         {% else %}
                             {% if web_container.history | length == 1 %}
-                                <a href="/preview/{{ web_container.id }}" target="{{web_container.id }}" class="pure-button button-small pure-button-primary"> Preview </a>
+                                <a href="/preview/{{ web_container.id }}" target="{{ web_container.id }}" class="pure-button button-small pure-button-primary"> Preview </a>
                             {% endif %}
                         {% endif %}
                     </td>

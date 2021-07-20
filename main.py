@@ -221,5 +221,19 @@ def api_delete():
 
     return redirect(url_for('index'))
 
+@app.route("/preview/<string:container_id>", methods=['GET'])
+@login_required
+def preview_page(container_id):
+    extra_stylesheets = ['/static/styles/diff.css']
+    web_container, atom_index, web_container_index = selenium_scheduler.find_container(container_id)
+
+    if web_container:
+        latest_history = web_container.get_latest_history()
+        output = render_template("preview.html", text_content=latest_history.text, extra_stylesheets=extra_stylesheets)
+        return output
+    else:
+        flash("No history found for the specified link !!!", "error")
+        return redirect(url_for('index'))
+
 if __name__ == "__main__":
     app.run(host=tools.get_ip(), port=config['port'])

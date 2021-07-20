@@ -71,6 +71,20 @@ class SeleniumScheduler():
             index = self.min_index()
             self.atoms[index].timer.register(web_container)
 
+class Atom():
+    def __init__(self, config, atom_index):
+        self.config = config
+
+        self.candidates = Queue()
+        self.nonupdated = Queue()
+        self.completed = Queue()
+
+        self.atom_index = atom_index
+
+        self.timer = Timer(self.config, self.candidates, self.completed)
+        self.fetcher = WebFetcher(self.config, self.candidates, self.nonupdated)
+        self.saver = Saver(self.config, self.nonupdated, self.completed, self.atom_index)
+
 class WebFetcher():
     def __init__(self, config, candidates, nonupdated):
         self.config = config
@@ -125,9 +139,8 @@ class Timer():
                 return
 
             index = self.find_index(web_container.id)
-            if index:
-                web_container.time_value = time.time()
-                self.update_manager_list(web_container, index)
+            web_container.time_value = time.time()
+            self.update_manager_list(web_container, index)
             
     def find_index(self, id):
         id_index = None
@@ -147,8 +160,9 @@ class Timer():
 
     def register(self, web_container):
         self.duties_lock.acquire()
-        web_container.time_value = time.time()
+        web_container.time_value = float("inf")
         self.duties.append(web_container)
+        self.candidates.put(web_container)
         self.duties_lock.release()
 
     def update_manager_list(self, web_container, index):
@@ -194,39 +208,24 @@ class WebContainer():
         self.setting = settings.ContainerSetting(url=url, interval=interval)
 
         self.time_value = time.time()
-        self.md5 = ''
-        self.html = ''
-        self.text = ''
-        self.prev_md5 = ''
-        self.prev_html = ''
-        self.prev_text = ''
+        self.history = []
     
     def update(self, html):
-        self.prev_html = self.html
-        self.html = html
-
-        self.prev_text = get_text(self.prev_html)
-        self.text = get_text(self.html)
-
-        self.count_md5()
+        if len(self.history) == 0:
+            self.history.append(PageData(html))
 
     def get_encoding(self):
         self.encoding = requests.get(self.setting.url).encoding
+    
+    def get_latest_history(self):
+        return self.history[-1]
 
-    def count_md5(self):
-        self.prev_md5 = hashlib.md5((self.prev_text).encode('utf8')).hexdigest()
-        self.md5 = hashlib.md5((self.text).encode('utf8')).hexdigest()
+class PageData():
+    def __init__(self, html):
+        self.html = html
+        self.text = get_text(self.html)
+        self.md5 = self.count_md5(self.text)
+        self.time_stamp = time.time()
 
-class Atom():
-    def __init__(self, config, atom_index):
-        self.config = config
-
-        self.candidates = Queue()
-        self.nonupdated = Queue()
-        self.completed = Queue()
-
-        self.atom_index = atom_index
-
-        self.timer = Timer(self.config, self.candidates, self.completed)
-        self.fetcher = WebFetcher(self.config, self.candidates, self.nonupdated)
-        self.saver = Saver(self.config, self.nonupdated, self.completed, self.atom_index)
+    def count_md5(self, text):
+        return hashlib.md5((text).encode('utf8')).hexdigest()
