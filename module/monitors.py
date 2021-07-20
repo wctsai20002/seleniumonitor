@@ -130,6 +130,10 @@ class Timer():
             self.check_completed()
             self.check_candidates()
 
+    def go_check(self, web_container):
+        web_container.time_value = float("inf")
+        self.candidates.put(web_container)
+
     def check_completed(self):
         queue_size = self.completed.qsize()
         for _ in range(queue_size):
@@ -154,15 +158,14 @@ class Timer():
         for index, web_container in enumerate(self.duties):
             time_value = time.time()
             if time_value - web_container.time_value >= web_container.setting.interval and not web_container.setting.pause:
-                web_container.time_value = float("inf")
+                self.go_check(web_container)
                 self.update_manager_list(web_container, index)
-                self.candidates.put(web_container)
+                
 
     def register(self, web_container):
         self.duties_lock.acquire()
-        web_container.time_value = float("inf")
+        self.go_check(web_container)
         self.duties.append(web_container)
-        self.candidates.put(web_container)
         self.duties_lock.release()
 
     def update_manager_list(self, web_container, index):
@@ -212,7 +215,15 @@ class WebContainer():
         self.history = []
     
     def update(self, html):
-        self.history.append(PageData(html))
+        latest_data = PageData(html)
+        if len(self.history) >= 2:
+            if self.get_latest_history().checksum != latest_data.checksum:
+                self.history.append(PageData(html))
+            else:
+                self.history[-1] = latest_data
+        else:
+            self.history.append(latest_data)
+        
         if len(self.history) > self.config['max_snapshots']:
             self.history = self.history[1 : ]
 
@@ -239,8 +250,8 @@ class PageData():
     def __init__(self, html):
         self.html = html
         self.text = get_text(self.html)
-        self.md5 = self.count_md5(self.text)
+        self.checksum = self.count_checksum(self.text)
         self.time_stamp = time.time()
 
-    def count_md5(self, text):
+    def count_checksum(self, text):
         return hashlib.md5((text).encode('utf8')).hexdigest()
