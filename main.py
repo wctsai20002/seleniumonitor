@@ -165,7 +165,7 @@ def api_add():
     url = request.form.get('url').strip()
     tags = request.form.get('tag').strip().split(' ')
 
-    web_container = monitors.WebContainer(url, global_setting.default_interval)
+    web_container = monitors.WebContainer(config, url, global_setting.default_interval)
     web_container.setting.set_tags(tags)
     selenium_scheduler.register(web_container)
 

@@ -203,7 +203,8 @@ class Saver():
             f[container_id] = web_container
 
 class WebContainer():
-    def __init__(self, url, interval):
+    def __init__(self, config, url, interval):
+        self.config = config
         self.id = str(time.time())
         self.setting = settings.ContainerSetting(url=url, interval=interval)
 
@@ -212,6 +213,8 @@ class WebContainer():
     
     def update(self, html):
         self.history.append(PageData(html))
+        if len(self.history) > self.config['max_snapshots']:
+            self.history = self.history[1 : ]
 
     def get_encoding(self):
         self.encoding = requests.get(self.setting.url).encoding

@@ -72,6 +72,7 @@ def load_env():
         atom_nums = int(os.getenv('ATOM_NUMS'))
         default_interval = float(os.getenv('DEFAULT_INTERVAL'))
         store_path = os.getenv('STORE_PATH')
+        max_snapshots = int(os.getenv('MAX_SNAPSHOTS'))
         port = int(os.getenv('PORT'))
         user_agent = os.getenv('USER_AGENT')
         line_notify_token = os.getenv('LINE_NOTIFY_TOKEN')
@@ -80,5 +81,5 @@ def load_env():
         print(e)
         raise
     
-    return {'driver_path' : driver_path, 'atom_nums' : atom_nums, 'default_interval' : default_interval, \
+    return {'driver_path' : driver_path, 'atom_nums' : atom_nums, 'default_interval' : default_interval, 'max_snapshots' : max_snapshots, \
             'store_path' : store_path, 'port' : port, 'user_agent' : user_agent, 'line_notify_token' : line_notify_token}
