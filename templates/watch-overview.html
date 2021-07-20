@@ -7,15 +7,15 @@
         <fieldset>
             <legend>Add a new change detection watch</legend>
             <input type="url" placeholder="https://..." name="url"/>
-            <input type="text" placeholder="tag" size="10" name="tag" value="{{active_tag if active_tag}}"/>
-            <button type="submit" class="pure-button pure-button-primary">Watch</button>
+            <input type="text" placeholder="tag" size="10" name="tag" value="{{show_tag if show_tag}}"/>
+            <button type="submit" class="pure-button pure-button-primary"> Watch </button>
         </fieldset>
     </form>
     <div>
-        <a href="/" class="pure-button button-tag {{'active' if not active_tag }}">All</a>
+        <a href="/" class="pure-button button-tag {{'active' if not show_tag }}"> All </a>
         {% for tag in tags %}
             {% if tag != "" %}
-                <a href="/?tag={{ tag }}" class="pure-button button-tag {{'active' if active_tag == tag }}"> {{ tag }} </a>
+                <a href="/?tag={{ tag }}" class="pure-button button-tag {{'active' if show_tag == tag }}"> {{ tag }} </a>
             {% endif %}
         {% endfor %}
     </div>
@@ -34,41 +34,42 @@
             </thead>
 
             <tbody>
-            {% for watch in watches %}
-                <tr id="{{ watch.id }}"
+            {% for web_container in web_containers %}
+                <tr id="{{ web_container.id }}"
                     class="{{ loop.cycle('pure-table-odd', 'pure-table-even') }}">
                     <td class="inline">{{ loop.index }}</td>
-                    <td class="inline pause-state state-{{watch.setting.pause}}">
+                    <td class="inline pause-state state-{{web_container.setting.pause}}">
                         <a href="/?pause=123">
                             <img src="/static/images/pause.svg" alt="Pause"/>
                         </a>
                     </td>
-                    <td class="title-col inline">{{watch.setting.title if watch.setting.title is not none and watch.setting.title | length > 0 else watch.setting.url}}
-                        <a class="external" target="_blank" rel="noopener" href="{{ watch.setting.url }}"></a>
-                        {% if watch.setting.last_error is defined and watch.setting.last_error != False %}
-                            <div class="fetch-error">{{ watch.setting.last_error }}</div>
+                    <td class="title-col inline">
+                        {{web_container.setting.title if web_container.setting.title is not none and web_container.setting.title | length > 0 else web_container.setting.url}}
+                        <a class="external" target="_blank" rel="noopener" href="{{ web_container.setting.url }}"></a>
+                        {% if web_container.setting.last_error is defined and web_container.setting.last_error != False %}
+                            <div class="fetch-error">{{ web_container.setting.last_error }}</div>
                         {% endif %}
-                        {% for tag in watch.setting.tags %}
+                        {% for tag in web_container.setting.tags %}
                             <span class="watch-tag-list">[{{ tag }}]</span>
                         {% endfor %}
                     </td>
-                    <td class="last-checked">{{ watch | format_last_checked_time }}</td>
+                    <td class="last-checked">{{ web_container | format_last_checked_time }}</td>
                     <td class="last-changed">
-                        <!-- {% if watch.history | length >= 2 and watch.last_changed %}
-                        {{watch.last_changed | format_timestamp_timeago}}
+                        <!-- {% if web_container.history | length >= 2 and web_container.last_changed %}
+                        {{web_container.last_changed | format_timestamp_timeago}}
                         {% else %}
                         Not yet
                         {% endif %} -->
                     </td>
                     <td>
-                        <a href="/api/checknow?uuid={{ watch.id }}{% if request.args.get('tag') %}&tag={{request.args.get('tag')}}{% endif %}"
+                        <a href="/api/checknow?uuid={{ web_container.id }}{% if request.args.get('tag') %}&tag={{request.args.get('tag')}}{% endif %}"
                         class="pure-button button-small pure-button-primary"> Recheck </a>
-                        <a href="/edit/{{ watch.id }}" class="pure-button button-small pure-button-primary"> Edit </a>
-                        {% if watch.history | length >= 2 %}
-                        <a href="/diff/{{ watch.id }}" target="{{watch.id }}" class="pure-button button-small pure-button-primary">Diff</a>
+                        <a href="/edit/{{ web_container.id }}" class="pure-button button-small pure-button-primary"> Edit </a>
+                        {% if web_container.history | length >= 2 %}
+                        <a href="/diff/{{ web_container.id }}" target="{{web_container.id }}" class="pure-button button-small pure-button-primary">Diff</a>
                         {% else %}
-                            {% if watch.history|length == 1 %}
-                                <a href="/preview/{{ watch.id }}" target="{{watch.id }}" class="pure-button button-small pure-button-primary">Preview</a>
+                            {% if web_container.history|length == 1 %}
+                                <a href="/preview/{{ web_container.id }}" target="{{web_container.id }}" class="pure-button button-small pure-button-primary">Preview</a>
                             {% endif %}
                         {% endif %}
                     </td>
@@ -83,11 +84,12 @@
             </li>
             {% endif %}
             <li>
-               <a href="/api/checknow" class="pure-button button-tag ">Recheck
-                all {% if active_tag%}in "{{active_tag}}"{%endif%}</a>
+               <a href="/api/checknow" class="pure-button button-tag ">
+                    Recheck all {% if show_tag %}in "{{ show_tag }}"{% endif %}
+                </a>
             </li>
             <li>
-                <a href="{{ url_for('index', tag=active_tag , rss=true)}}"><img id="feed-icon" src="/static/images/Generic_Feed-icon.svg" height="15px"></a>
+                <a href="{{ url_for('index', tag=show_tag , rss=true)}}"><img id="feed-icon" src="/static/images/Generic_Feed-icon.svg" height="15px"></a>
             </li>
         </ul>
     </div>

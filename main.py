@@ -134,14 +134,14 @@ def settings_page():
 @app.route("/", methods=['GET'])
 @login_required
 def index():
-    limit_tag = request.args.get('tag')
-    pause_uuid = request.args.get('pause')
+    show_tag = request.args.get('tag')
+    pause_container_id = request.args.get('pause')
 
-    sorted_watches = selenium_scheduler.get_duties()
-    existing_tags = selenium_scheduler.get_tags()
+    web_containers = selenium_scheduler.get_duties(tag=show_tag)
+    all_tags = selenium_scheduler.get_tags()
 
-    output = render_template("watch-overview.html", watches=sorted_watches, tags=existing_tags, \
-        active_tag=limit_tag, has_unviewed=False)
+    output = render_template("watch-overview.html", web_containers=web_containers, tags=all_tags, \
+        show_tag=show_tag, has_unviewed=False)
     return output
 
 

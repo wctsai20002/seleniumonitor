@@ -33,8 +33,8 @@ class SeleniumScheduler():
         sizes = [len(atom.timer.duties) for atom in self.atoms]
         return sizes.index(min(sizes))
 
-    def get_duties(self):
-        all_duties = [web_container for atom in self.atoms for web_container in atom.timer.duties]
+    def get_duties(self, tag=None):
+        all_duties = [web_container for atom in self.atoms for web_container in atom.timer.duties if not tag or tag in web_container.setting.tags]
         return all_duties
 
     def get_tags(self):
