@@ -26,6 +26,7 @@ class SeleniumScheduler():
     def register(self, web_container):
         index = self.min_index()
         web_container.id = str(index) + '_' + web_container.id
+        self.atoms[index].saver.save(web_container)
         self.atoms[index].timer.register(web_container)
 
     def min_index(self):
@@ -71,7 +72,8 @@ class SeleniumScheduler():
                             web_containers.append(f[key])
         
         for web_container in web_containers:
-            self.register(web_container)
+            index = self.min_index()
+            self.atoms[index].timer.register(web_container)
 
 class WebFetcher():
     def __init__(self, config, candidates, nonupdated):
