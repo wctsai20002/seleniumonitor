@@ -38,12 +38,12 @@ app.secret_key = tools.init_secret(config['store_path'])
 
 
 @app.template_filter('format_last_checked_time')
-def _jinja2_filter_datetime(watch_obj, format="%Y-%m-%d %H:%M:%S"):
+def _jinja2_filter_datetime(watch_obj, format='%Y-%m-%d %H:%M:%S'):
     return 'Not yet'
     # return timeago.format(int(watch_obj['last_checked']), time.time())
 
 @app.template_filter('format_timestamp_timeago')
-def _jinja2_filter_datetimestamp(timestamp, format="%Y-%m-%d %H:%M:%S"):
+def _jinja2_filter_datetimestamp(timestamp, format='%Y-%m-%d %H:%M:%S'):
     return timeago.format(timestamp, time.time())
     # return timeago.format(timestamp, time.time())
     # return datetime.datetime.utcfromtimestamp(timestamp).strftime(format)
@@ -66,15 +66,15 @@ def unauthorized_handler():
 def login():
     if not global_setting.password:
         app.config['LOGIN_DISABLED'] = True
-        flash("Login not required, no password enabled.", "notice")
+        flash('Login not required, no password enabled.', 'notice')
         return redirect(url_for('index'))
 
     elif request.method == 'GET':
-        output = render_template("login.html")
+        output = render_template('login.html')
         return output
 
     user = tools.User()
-    user.id = "defaultuser@example.com"
+    user.id = 'defaultuser@example.com'
     password = request.form.get('password')
 
     if (user.check_password(password, global_setting)):
@@ -90,7 +90,7 @@ def logout():
     flask_login.logout_user()
     return redirect(url_for('index'))
 
-@app.route("/settings", methods=['GET', "POST"])
+@app.route('/settings', methods=['GET', 'POST'])
 @login_required
 def settings_page():
     form = forms.SettingForm(request.form)
@@ -103,7 +103,7 @@ def settings_page():
         if request.values.get('removepassword') == 'true':
             global_setting.password = None
             app.config['LOGIN_DISABLED'] = True
-            flash("Password protection removed.", 'notice')
+            flash('Password protection removed.', 'notice')
             flask_login.logout_user()
 
     elif request.method == 'POST' and form.validate():
@@ -119,19 +119,19 @@ def settings_page():
         if form.password.encrypted_password:
             global_setting.password = form.password.encrypted_password
             app.config['LOGIN_DISABLED'] = False
-            flash("Password protection enabled.", 'notice')
+            flash('Password protection enabled.', 'notice')
             flask_login.logout_user()
             return redirect(url_for('index'))
 
-        flash("Settings updated.")
+        flash('Settings updated.')
 
     elif request.method == 'POST' and not form.validate():
-        flash("An error occurred, please see below.", "error")
+        flash('An error occurred, please see below.', 'error')
 
-    output = render_template("settings.html", form=form)
+    output = render_template('settings.html', form=form)
     return output
 
-@app.route("/", methods=['GET'])
+@app.route('/', methods=['GET'])
 @login_required
 def index():
     show_tag = request.args.get('tag')
@@ -140,26 +140,26 @@ def index():
     web_containers = selenium_scheduler.get_duties(tag=show_tag)
     all_tags = selenium_scheduler.get_tags()
 
-    output = render_template("watch-overview.html", web_containers=web_containers, tags=all_tags, \
+    output = render_template('watch-overview.html', web_containers=web_containers, tags=all_tags, \
         show_tag=show_tag, has_unviewed=False)
     return output
 
 
-@app.route("/favicon.ico", methods=['GET'])
+@app.route('/favicon.ico', methods=['GET'])
 def favicon():
-    return send_from_directory("/app/static/images", filename="favicon.ico")
+    return send_from_directory('/app/static/images', filename='favicon.ico')
 
-@app.route("/static/<string:group>/<string:filename>", methods=['GET'])
+@app.route('/static/<string:group>/<string:filename>', methods=['GET'])
 def static_content(group, filename):
     full_path = os.path.realpath(__file__)
     p = os.path.dirname(full_path)
 
     try:
-        return send_from_directory("{}/static/{}".format(p, group), filename=filename)
+        return send_from_directory('{}/static/{}'.format(p, group), filename=filename)
     except FileNotFoundError:
         abort(404)
 
-@app.route("/api/add", methods=['POST'])
+@app.route('/api/add', methods=['POST'])
 @login_required
 def api_add():
     url = request.form.get('url').strip()
@@ -169,10 +169,10 @@ def api_add():
     web_container.setting.set_tags(tags)
     selenium_scheduler.register(web_container)
 
-    flash("Watch added.")
+    flash('Watch added.')
     return redirect(url_for('index'))
 
-@app.route("/edit/<string:container_id>", methods=['GET', 'POST'])
+@app.route('/edit/<string:container_id>', methods=['GET', 'POST'])
 @login_required
 def edit_page(container_id):
     form = forms.ContainerForm(request.form)
@@ -182,10 +182,10 @@ def edit_page(container_id):
         if web_container:
             forms.populate_form(form, web_container)
             print(form.url)
-            output = render_template("edit.html", container_id=container_id, web_container=web_container, form=form)
+            output = render_template('edit.html', container_id=container_id, web_container=web_container, form=form)
             return output
         else:
-            flash("No watch with the ID %s found." % (container_id), "error")
+            flash('No watch with the ID %s found.' % (container_id), 'error')
 
     elif request.method == 'POST' and form.validate():
         if web_container:
@@ -200,19 +200,19 @@ def edit_page(container_id):
 
             web_container.setting.update(url=url, interval=interval, title=title, tags=tags, emails=notification_emails)
             selenium_scheduler.update(web_container, atom_index, web_container_index)
-            flash("Updated watch.")
+            flash('Updated watch.')
 
             if form.trigger_notify.data:
                 flash('Notifications queued.')
         else:
-            flash("No watch with the ID %s found." % (container_id), "error")
+            flash('No watch with the ID %s found.' % (container_id), 'error')
 
     elif request.method == 'POST' and not form.validate():
-        flash("An error occurred, please see below.", "error")
+        flash('An error occurred, please see below.', 'error')
     
     return redirect(url_for('index'))
 
-@app.route("/api/delete", methods=['GET'])
+@app.route('/api/delete', methods=['GET'])
 @login_required
 def api_delete():
     container_id = request.args.get('id')
@@ -221,7 +221,7 @@ def api_delete():
 
     return redirect(url_for('index'))
 
-@app.route("/preview/<string:container_id>", methods=['GET'])
+@app.route('/preview/<string:container_id>', methods=['GET'])
 @login_required
 def preview_page(container_id):
     extra_stylesheets = ['/static/styles/diff.css']
@@ -229,13 +229,13 @@ def preview_page(container_id):
 
     if web_container:
         latest_history = web_container.get_latest_history()
-        output = render_template("preview.html", text_content=latest_history.text, extra_stylesheets=extra_stylesheets)
+        output = render_template('preview.html', text_content=latest_history.text, extra_stylesheets=extra_stylesheets)
         return output
     else:
-        flash("No history found for the specified link !!!", "error")
+        flash('No history found for the specified link !!!', 'error')
         return redirect(url_for('index'))
 
-@app.route("/diff/<string:container_id>", methods=['GET'])
+@app.route('/diff/<string:container_id>', methods=['GET'])
 @login_required
 def diff_history_page(container_id):
     extra_stylesheets = ['/static/styles/diff.css']
@@ -249,13 +249,27 @@ def diff_history_page(container_id):
         previous_history = web_container.get_previous_history(previous_version_index)
         versions = web_container.get_time_stamps()
         
-        output = render_template("diff.html", latest_content=latest_history.text, previous_content=previous_history.text, \
+        output = render_template('diff.html', latest_content=latest_history.text, previous_content=previous_history.text, \
                                     extra_stylesheets=extra_stylesheets, versions=versions, container_id=container_id,
                                     latest_version=versions[-1], previous_version=versions[previous_version_index])
         return output
     else:
-        flash("No history found for the specified link !!!", "error")
+        flash('No history found for the specified link !!!', 'error')
         return redirect(url_for('index'))
 
-if __name__ == "__main__":
+@app.route('/api/recheck', methods=['GET'])
+@login_required
+def api_watch_checknow():
+    tag = request.args.get('tag')
+    container_id = request.args.get('id')
+
+    if container_id:
+        selenium_scheduler.recheck(container_id=container_id)
+    else:
+        selenium_scheduler.recheck(tag=tag)
+
+    flash('Watches are rechecking.')
+    return redirect(url_for('index', tag=tag))
+
+if __name__ == '__main__':
     app.run(host=tools.get_ip(), port=config['port'])

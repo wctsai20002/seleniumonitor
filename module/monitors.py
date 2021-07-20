@@ -70,6 +70,15 @@ class SeleniumScheduler():
         for web_container in web_containers:
             index = self.min_index()
             self.atoms[index].timer.register(web_container)
+    
+    def recheck(self, container_id=None, tag=None):
+        if container_id:
+            web_container, atom_index, web_container_index = self.find_container(container_id)
+            self.atoms[atom_index].timer.recheck(web_container)
+        else:
+            web_containers = self.get_duties(tag)
+            for web_container in web_containers:
+                self.recheck(web_container.id)
 
 class Atom():
     def __init__(self, config, atom_index):
@@ -131,8 +140,12 @@ class Timer():
             self.check_candidates()
 
     def go_check(self, web_container):
-        web_container.time_value = float("inf")
+        web_container.time_value = float('inf')
         self.candidates.put(web_container)
+
+    def recheck(self, web_container):
+        if web_container.time_value != float('inf'):
+            self.go_check(web_container)
 
     def check_completed(self):
         queue_size = self.completed.qsize()

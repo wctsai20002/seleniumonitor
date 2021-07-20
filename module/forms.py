@@ -8,20 +8,20 @@ class StringListField(StringField):
 
     def _value(self):
         if self.data:
-            return "\n".join(self.data)
+            return '\n'.join(self.data)
         else:
             return u''
 
     def process_formdata(self, valuelist):
         if valuelist:
-            cleaned = list(filter(None, valuelist[0].split("\n")))
+            cleaned = list(filter(None, valuelist[0].split('\n')))
             self.data = [x.strip() for x in cleaned]
         else:
             self.data = []
 
 class SaltyPasswordField(StringField):
     widget = widgets.PasswordInput()
-    encrypted_password = ""
+    encrypted_password = ''
 
     def build_password(self, password):
         import hashlib
@@ -42,7 +42,7 @@ class SaltyPasswordField(StringField):
             # Be really sure it's non-zero in length
             if len(valuelist[0].strip()) > 0:
                 self.encrypted_password = self.build_password(valuelist[0])
-                self.data = ""
+                self.data = ''
         else:
             self.data = False
 
@@ -55,7 +55,7 @@ class StringDictKeyValue(StringField):
         if self.data:
             output = u''
             for k in self.data.keys():
-                output += "{}: {}\r\n".format(k, self.data[k])
+                output += '{}: {}\r\n'.format(k, self.data[k])
 
             return output
         else:
@@ -66,7 +66,7 @@ class StringDictKeyValue(StringField):
         if valuelist:
             self.data = {}
             # Remove empty strings
-            cleaned = list(filter(None, valuelist[0].split("\n")))
+            cleaned = list(filter(None, valuelist[0].split('\n')))
             for s in cleaned:
                 parts = s.strip().split(':')
                 if len(parts) == 2:
@@ -76,9 +76,9 @@ class StringDictKeyValue(StringField):
             self.data = {}
 
 class ListRegex(object):
-    """
+    '''
     Validates that anything that looks like a regex passes as a regex
-    """
+    '''
     def __init__(self, message=None):
         self.message = message
 
