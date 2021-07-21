@@ -9,6 +9,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from multiprocessing import Process, Queue, Manager, Value
 from module import settings
+from module import notifies
 
 class SeleniumScheduler():
     def __init__(self, config):
@@ -93,18 +94,21 @@ class Atom():
         self.candidates = Queue()
         self.nonupdated = Queue()
         self.completed = Queue()
+        self.messages = Queue()
 
         self.atom_index = atom_index
 
         self.timer = Timer(self.config, self.candidates, self.completed)
-        self.fetcher = WebFetcher(self.config, self.candidates, self.nonupdated)
+        self.fetcher = WebFetcher(self.config, self.candidates, self.nonupdated, self.messages)
         self.saver = Saver(self.config, self.nonupdated, self.completed, self.atom_index)
+        self.sender = notifies.NotifySender(notifies.LineNotifyNotifier(config['line_notify_token']), self.messages)
 
 class WebFetcher():
-    def __init__(self, config, candidates, nonupdated):
+    def __init__(self, config, candidates, nonupdated, messages):
         self.config = config
         self.candidates = candidates
         self.nonupdated = nonupdated
+        self.messages = messages
 
         self.chrome_options = Options()
         self.chrome_options.add_argument('--headless')
@@ -123,7 +127,9 @@ class WebFetcher():
             driver = webdriver.Chrome(self.config['driver_path'], options=self.chrome_options)
             driver.get(web_container.setting.url)
             # update
-            web_container.update(driver.page_source)
+            changed = web_container.update(driver.page_source)
+            if changed:
+                self.messages.put(notifies.LineNotifyMessage(self.config, web_container))
             driver.close()
 
             self.nonupdated.put(web_container)
@@ -246,11 +252,13 @@ class WebContainer():
         self.history = []
     
     def update(self, html):
+        changed = False
         latest_data = PageData(html)
         
         if self.get_latest_history().checksum != latest_data.checksum:
             latest_data.changed = True
             self.history.append(latest_data)
+            changed = True
         else:
             if len(self.history) >= 2:
                 self.history[-1] = latest_data
@@ -259,6 +267,7 @@ class WebContainer():
         
         if len(self.history) > self.config['max_snapshots']:
             self.history = self.history[1 : ]
+        return changed
 
     def get_encoding(self):
         self.encoding = requests.get(self.setting.url).encoding

@@ -8,44 +8,43 @@
         <fieldset>
             <div class="pure-control-group">
                 {{ render_field(form.interval, size=5) }}
-                 <span class="pure-form-message-inline">Default time for all watches, when the watch does not have a specific time setting.</span>
+                 <span class="pure-form-message-inline"> Default time for all watches, when the watch does not have a specific time setting. </span>
             </div>
             <div class="pure-control-group">
                 {% if current_user.is_authenticated %}
-                    <a href="/settings?removepassword=true" class="pure-button pure-button-primary">Remove password</a>
+                    <a href="/settings?removepassword=true" class="pure-button pure-button-primary"> Remove password </a>
                 {% else %}
                     {{ render_field(form.password, size=10) }}
-                    <span class="pure-form-message-inline">Password protection for your changedetection.io application.</span>
+                    <span class="pure-form-message-inline"> Password protection for your changedetection.io application. </span>
                 {% endif %}
             </div>
             <div class="pure-control-group">
                 {{ render_field(form.extract_title_as_title) }}
-                  <span class="pure-form-message-inline">Note: This will automatically apply to all existin g watches.</span>
+                <span class="pure-form-message-inline"> Note: This will automatically apply to all watches. </span>
             </div>
             <div class="pure-control-group">
                 {{ render_field(form.notification_emails, rows=5, placeholder="receiver@example.com") }}
             </div>
+            <div class="pure-control-group">
+                {{ render_field(form.line_notify_token, size=60) }}
+            </div>
                 <div class="pure-controls">
                     <span class="pure-form-message-inline"><label for="trigger_notify" class="pure-checkbox">
-                        <input type="checkbox" id="trigger_notify" name="trigger_notify"> Send test notification on save.</label></span>
+                        <input type="checkbox" id="trigger_notify" name="trigger_notify"> Send test notification on save. </label></span>
                 </div>
 
             <br/>
             <div class="pure-control-group">
-                <button type="submit" class="pure-button pure-button-primary">Save</button>
+                <button type="submit" class="pure-button pure-button-primary"> Save </button>
             </div>
             <br/>
 
             <div class="pure-control-group">
-                <a href="/" class="pure-button button-small button-cancel">Back</a>
-                <a href="/scrub" class="pure-button button-small button-cancel">Delete History Snapshot Data</a>
+                <a href="/" class="pure-button button-small button-cancel"> Back </a>
+                <a href="/scrub" class="pure-button button-small button-cancel"> Delete History Snapshot Data </a>
             </div>
-
-
         </fieldset>
     </form>
-
-
 </div>
 
 {% endblock %}

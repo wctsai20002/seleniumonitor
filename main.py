@@ -17,7 +17,6 @@ from module import monitors
 from module import forms
 from module import tools
 
-
 config = tools.load_env()
 
 app = Flask(__name__)
@@ -90,9 +89,7 @@ def settings_page():
     form = forms.SettingForm(request.form)
 
     if request.method == 'GET':
-        form.interval.data = global_setting.default_interval
-        form.notification_emails.data = global_setting.mails
-        form.extract_title_as_title.data = global_setting.extract_title
+        forms.populate_setting_form(form, config, global_setting)
 
         if request.values.get('removepassword') == 'true':
             global_setting.password = None
@@ -105,6 +102,7 @@ def settings_page():
         global_setting.mails = form.notification_emails.data
         global_setting.default_interval = form.interval.data
         global_setting.extract_title = form.extract_title_as_title.data
+        global_setting.line_notify_token = form.line_notify_token.data
         
         if form.trigger_notify.data:
             # send notify
@@ -174,8 +172,7 @@ def edit_page(container_id):
 
     if request.method == 'GET':
         if web_container:
-            forms.populate_form(form, web_container)
-            print(form.url)
+            forms.populate_edit_form(form, web_container)
             output = render_template('edit.html', container_id=container_id, web_container=web_container, form=form)
             return output
         else:
@@ -266,7 +263,8 @@ def api_watch_checknow():
     return redirect(url_for('index', tag=tag))
 
 if __name__ == '__main__':
+    config['ip'] = tools.get_ip()
     global_setting = settings.GlobalSetting(config)
     selenium_scheduler = monitors.SeleniumScheduler(config)
 
-    app.run(host=tools.get_ip(), port=config['port'])
+    app.run(host=config['ip'], port=config['port'])

@@ -46,7 +46,6 @@ class SaltyPasswordField(StringField):
         else:
             self.data = False
 
-
 # Separated by  key:value
 class StringDictKeyValue(StringField):
     widget = widgets.TextArea()
@@ -76,9 +75,6 @@ class StringDictKeyValue(StringField):
             self.data = {}
 
 class ListRegex(object):
-    '''
-    Validates that anything that looks like a regex passes as a regex
-    '''
     def __init__(self, message=None):
         self.message = message
 
@@ -113,14 +109,27 @@ class SettingForm(Form):
     password = SaltyPasswordField()
 
     interval = FloatField('Maximum time in seconds until recheck', [validators.NumberRange(min=1)])
-    notification_emails = StringListField('Notification Email')
     extract_title_as_title = BooleanField('Extract <title> from document and use as watch title')
+    notification_emails = StringListField('Notification Email')
+    line_notify_token = StringField('Line Notify Token')
     trigger_notify = BooleanField('Send test notification on save')
 
-def populate_form(form, web_container):
+def populate_edit_form(form, web_container):
     form.url.data = web_container.setting.url
     form.title.data = web_container.setting.title
     form.tags.data = ' '.join(web_container.setting.tags)
     form.interval.data = web_container.setting.interval
     form.css_selector.data = web_container.setting.css_selector
     form.notification_emails.data = web_container.setting.notification_emails
+
+def populate_setting_form(form, config, global_setting):
+    form.interval.data = global_setting.default_interval
+    form.extract_title_as_title.data = global_setting.extract_title
+    form.notification_emails.data = global_setting.mails
+    form.line_notify_token.data = make_hidden_token(config['line_notify_token'])
+
+def make_hidden_token(token):
+    token_size = len(token)
+    start_index, end_index = int(token_size / 4), int(3 * token_size/ 4)
+    token = token[ : start_index] + '*' * (end_index - start_index) + token[end_index : ]
+    return token
