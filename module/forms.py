@@ -46,7 +46,7 @@ class SaltyPasswordField(StringField):
         else:
             self.data = False
 
-# Separated by  key:value
+# Separated by key : value
 class StringDictKeyValue(StringField):
     widget = widgets.TextArea()
 
@@ -90,7 +90,6 @@ class ListRegex(object):
                 except re.error:
                     message = field.gettext('RegEx \'%s\' is not a valid regular expression.')
                     raise ValidationError(message % (line))
-
 
 class ContainerForm(Form):
     url = html5.URLField('URL', [validators.URL(require_tld=False)])

@@ -1,7 +1,6 @@
 import os
 import abc
 import requests
-from ctypes import c_char_p
 from multiprocessing import Process, Queue, Manager, Value
 
 class NotifySender():

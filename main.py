@@ -1,16 +1,10 @@
 import os
 import time
-import pytz
-import queue
 import timeago
-import datetime
 import requests
-import threading
 from threading import Event
-from feedgen.feed import FeedGenerator
 import flask_login
 from flask_login import login_required
-from flask import make_response
 from flask import Flask, render_template, request, send_from_directory, abort, redirect, url_for, flash
 from module import settings
 from module import monitors
