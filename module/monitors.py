@@ -17,7 +17,7 @@ class SeleniumScheduler():
         self.global_setting = global_setting
         self.atom_nums = self.config['atom_nums']
         self.atoms = [Atom(self.config, global_setting, atom_index) for atom_index in range(self.atom_nums)]
-        self.load_data()
+        self.load_atoms_data()
 
     def register(self, web_container):
         index = self.min_index()
@@ -58,22 +58,22 @@ class SeleniumScheduler():
         self.atoms[atom_index].saver.delete(web_container)
         self.atoms[atom_index].timer.delete_manager_list(web_container, web_container_index)
 
-    def load_data(self):
+    def load_atoms_data(self):
         web_containers = {}
-        for root, dirs, files in os.walk(self.config['store_path']):
+        for root, dirs, files in os.walk(self.config['atoms_path']):
             for file_name in files:
                 if file_name.endswith('.bak'):
                     file_path = os.path.join(root, file_name.rstrip('.bak'))
                     with shelve.open(file_path) as f:
                         for key in f.keys():
                             web_containers[key] = f[key]
-        self.clear()
+        self.clear_atoms()
         
         for key, web_container in web_containers.items():
             self.register(web_container)
 
-    def clear(self):
-        for root, dirs, files in os.walk(self.config['store_path']):
+    def clear_atoms(self):
+        for root, dirs, files in os.walk(self.config['atoms_path']):
             for file_name in files:
                 if file_name.endswith('.bak') or file_name.endswith('.dat') or file_name.endswith('.dir'):
                     file_path = os.path.join(root, file_name)
@@ -228,7 +228,7 @@ class Saver():
         self.config = config
         self.nonupdated = nonupdated
         self.completed = completed
-        self.file_path = os.path.join(self.config['store_path'], 'atom_' + str(atom_index))
+        self.file_path = os.path.join(self.config['atoms_path'], 'atom_' + str(atom_index))
 
         self.store_process = Process(target=self.store)
         self.store_process.start()

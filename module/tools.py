@@ -65,6 +65,16 @@ def get_ip():
     s.close()
     return ip
 
+def init_config(config):
+    config['ip'] = get_ip()
+    config['atoms_path'] = os.path.join(config['store_path'], 'atoms/')
+    config['global_setting_path'] = os.path.join(config['store_path'], 'global_setting')
+
+    check_dirs = ['store_path', 'atoms_path', 'global_setting_path']
+    for check_dir in check_dirs:
+        if not os.path.isdir(config[check_dir]):
+            os.mkdir(config[check_dir])
+
 def load_env():
     try:
         load_dotenv(find_dotenv())

@@ -24,7 +24,6 @@ app.config.exit = Event()
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 app.config['NEW_VERSION_AVAILABLE'] = False
 app.config['TEMPLATES_AUTO_RELOAD'] = True
-app.config['LOGIN_DISABLED'] = True
 # app.config.update(dict(DEBUG=True))
 
 login_manager = flask_login.LoginManager(app)
@@ -92,7 +91,7 @@ def settings_page():
         forms.populate_setting_form(form, config, global_setting)
 
         if request.values.get('removepassword') == 'true':
-            global_setting.password = None
+            global_setting.set_password(None)
             app.config['LOGIN_DISABLED'] = True
             flash('Password protection removed.', 'notice')
             flask_login.logout_user()
@@ -106,7 +105,7 @@ def settings_page():
             flash('Notifications queued.')
 
         if form.password.encrypted_password:
-            global_setting.password = form.password.encrypted_password
+            global_setting.set_password(form.password.encrypted_password)
             app.config['LOGIN_DISABLED'] = False
             flash('Password protection enabled.', 'notice')
             flask_login.logout_user()
@@ -260,8 +259,9 @@ def api_watch_checknow():
     return redirect(url_for('index', tag=tag))
 
 if __name__ == '__main__':
-    config['ip'] = tools.get_ip()
+    tools.init_config(config)
     global_setting = settings.GlobalSetting(config)
     selenium_scheduler = monitors.SeleniumScheduler(config, global_setting)
 
+    app.config['LOGIN_DISABLED'] = global_setting.password == None
     app.run(host=config['ip'], port=config['port'])
