@@ -13,15 +13,12 @@ from module import settings
 class SeleniumScheduler():
     def __init__(self, config):
         self.config = config
-        
         self.atom_nums = self.config['atom_nums']
         self.atoms = [Atom(self.config, atom_index) for atom_index in range(self.atom_nums)]
-        
         self.load_data()
 
     def register(self, web_container):
         index = self.min_index()
-        web_container.id = str(index) + '_' + web_container.id
         self.atoms[index].saver.save(web_container)
         self.atoms[index].timer.register(web_container)
 
@@ -51,26 +48,35 @@ class SeleniumScheduler():
         return None
     
     def update(self, web_container, atom_index, web_container_index):
-        self.atoms[atom_index].timer.update_manager_list(web_container, web_container_index)
+        self.atoms[atom_index].timer.update_manager_list(web_container, web_container_index, 'setting')
+        self.atoms[atom_index].saver.save(web_container)
 
     def delete(self, container_id):
         web_container, atom_index, web_container_index = self.find_container(container_id)
+        self.atoms[atom_index].saver.delete(web_container)
         self.atoms[atom_index].timer.delete_manager_list(web_container, web_container_index)
 
     def load_data(self):
-        web_containers = []
+        web_containers = {}
         for root, dirs, files in os.walk(self.config['store_path']):
             for file_name in files:
                 if file_name.endswith('.bak'):
                     file_path = os.path.join(root, file_name.rstrip('.bak'))
                     with shelve.open(file_path) as f:
                         for key in f.keys():
-                            web_containers.append(f[key])
+                            web_containers[key] = f[key]
+        self.clear()
         
-        for web_container in web_containers:
-            index = self.min_index()
-            self.atoms[index].timer.register(web_container)
-    
+        for key, web_container in web_containers.items():
+            self.register(web_container)
+
+    def clear(self):
+        for root, dirs, files in os.walk(self.config['store_path']):
+            for file_name in files:
+                if file_name.endswith('.bak') or file_name.endswith('.dat') or file_name.endswith('.dir'):
+                    file_path = os.path.join(root, file_name)
+                    os.remove(file_path)
+
     def recheck(self, container_id=None, tag=None):
         if container_id:
             web_container, atom_index, web_container_index = self.find_container(container_id)
@@ -157,7 +163,8 @@ class Timer():
 
             index = self.find_index(web_container.id)
             web_container.time_value = time.time()
-            self.update_manager_list(web_container, index)
+            self.update_manager_list(web_container, index, 'history')
+            self.update_manager_list(web_container, index, 'time_value')
             
     def find_index(self, id):
         id_index = None
@@ -172,8 +179,7 @@ class Timer():
             time_value = time.time()
             if time_value - web_container.time_value >= web_container.setting.interval and not web_container.setting.pause:
                 self.go_check(web_container)
-                self.update_manager_list(web_container, index)
-                
+                self.update_manager_list(web_container, index, 'time_value')
 
     def register(self, web_container):
         self.duties_lock.acquire()
@@ -181,10 +187,10 @@ class Timer():
         self.duties.append(web_container)
         self.duties_lock.release()
 
-    def update_manager_list(self, web_container, index):
+    def update_manager_list(self, web_container, index, attribute):
         self.duties_lock.acquire()
         tempt = list(self.duties)
-        tempt[index] = web_container
+        setattr(tempt[index], attribute, getattr(web_container, attribute))
         self.duties[ : ] = tempt
         self.duties_lock.release()
 
@@ -200,7 +206,6 @@ class Saver():
         self.config = config
         self.nonupdated = nonupdated
         self.completed = completed
-        self.data = {}
         self.file_path = os.path.join(self.config['store_path'], 'atom_' + str(atom_index))
 
         self.store_process = Process(target=self.store)
@@ -214,28 +219,34 @@ class Saver():
 
     def save(self, web_container):
         container_id = web_container.id
-        # self.data[container_id] = web_container
         with shelve.open(self.file_path) as f:
             f[container_id] = web_container
+        self.completed.put(web_container)
+
+    def delete(self, web_container):
+        container_id = web_container.id
+        with shelve.open(self.file_path) as f:
+            del f[container_id]
 
 class WebContainer():
     def __init__(self, config, url, interval):
         self.config = config
         self.id = str(time.time())
-        self.setting = settings.ContainerSetting(url=url, interval=interval)
-
         self.time_value = time.time()
+        self.setting = settings.ContainerSetting(url=url, interval=interval)
         self.history = []
     
     def update(self, html):
         latest_data = PageData(html)
-        if len(self.history) >= 2:
-            if self.get_latest_history().checksum != latest_data.checksum:
-                self.history.append(PageData(html))
-            else:
-                self.history[-1] = latest_data
-        else:
+        
+        if self.get_latest_history().checksum != latest_data.checksum:
+            latest_data.changed = True
             self.history.append(latest_data)
+        else:
+            if len(self.history) >= 2:
+                self.history[-1] = latest_data
+            else:
+                self.history.append(latest_data)
         
         if len(self.history) > self.config['max_snapshots']:
             self.history = self.history[1 : ]
@@ -249,6 +260,12 @@ class WebContainer():
     def get_previous_history(self, index=None):
         index = -2 if index == None else index
         return self.history[index]
+
+    def get_latest_changed(self):
+        for page_data in reversed(self.history):
+            if page_data.changed:
+                return page_data.time_stamp
+        return None
 
     def get_time_stamps(self):
         return [page_data.time_stamp for page_data in self.history]
@@ -265,6 +282,7 @@ class PageData():
         self.text = get_text(self.html)
         self.checksum = self.count_checksum(self.text)
         self.time_stamp = time.time()
+        self.changed = False
 
     def count_checksum(self, text):
         return hashlib.md5((text).encode('utf8')).hexdigest()

@@ -52,14 +52,8 @@
                             <span class="watch-tag-list"> {{ tag }} </span>
                         {% endfor %}
                     </td>
-                    <td class="last-checked"> {{ web_container | format_last_checked_time }} </td>
-                    <td class="last-changed">
-                        <!-- {% if web_container.history | length >= 2 and web_container.last_changed %}
-                        {{web_container.last_changed | format_timestamp_timeago}}
-                        {% else %}
-                        Not yet
-                        {% endif %} -->
-                    </td>
+                    <td class="last-checked"> {{ web_container | last_checked_time }} </td>
+                    <td class="last-changed"> {{ web_container | last_changed_time }} </td>
                     <td>
                         <a href="/api/recheck?id={{ web_container.id }}" class="pure-button button-small pure-button-primary"> Recheck </a>
                         <a href="/edit/{{ web_container.id }}" class="pure-button button-small pure-button-primary"> Edit </a>

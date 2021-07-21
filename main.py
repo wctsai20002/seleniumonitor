@@ -17,40 +17,34 @@ from module import monitors
 from module import forms
 from module import tools
 
+
 config = tools.load_env()
 
-global_setting = settings.GlobalSetting(config)
-selenium_scheduler = monitors.SeleniumScheduler(config)
-
 app = Flask(__name__)
-
 app.config.exit = Event()
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 app.config['NEW_VERSION_AVAILABLE'] = False
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.config['LOGIN_DISABLED'] = True
-app.config.update(dict(DEBUG=True))
+# app.config.update(dict(DEBUG=True))
 
 login_manager = flask_login.LoginManager(app)
 login_manager.login_view = 'login'
 
 app.secret_key = tools.init_secret(config['store_path'])
 
+@app.template_filter('last_checked_time')
+def _jinja2_filter_datetime(web_container, format='%Y-%m-%d %H:%M:%S'):
+    web_container_time = time.time() if web_container.time_value == float('inf') else web_container.time_value
+    return timeago.format(web_container_time, time.time())
 
-@app.template_filter('format_last_checked_time')
-def _jinja2_filter_datetime(watch_obj, format='%Y-%m-%d %H:%M:%S'):
-    return 'Not yet'
-    # return timeago.format(int(watch_obj['last_checked']), time.time())
-
-@app.template_filter('format_timestamp_timeago')
-def _jinja2_filter_datetimestamp(timestamp, format='%Y-%m-%d %H:%M:%S'):
-    return timeago.format(timestamp, time.time())
-    # return timeago.format(timestamp, time.time())
-    # return datetime.datetime.utcfromtimestamp(timestamp).strftime(format)
-
-# @app.before_request
-# def request_checker():
-#     pass
+@app.template_filter('last_changed_time')
+def _jinja2_filter_datetime(web_container, format='%Y-%m-%d %H:%M:%S'):
+    web_container_time = web_container.get_latest_changed()
+    if web_container_time:
+        return timeago.format(web_container_time, time.time())
+    else:
+        return 'Not yet'
 
 @login_manager.user_loader
 def user_loader(email):
@@ -272,4 +266,7 @@ def api_watch_checknow():
     return redirect(url_for('index', tag=tag))
 
 if __name__ == '__main__':
+    global_setting = settings.GlobalSetting(config)
+    selenium_scheduler = monitors.SeleniumScheduler(config)
+
     app.run(host=tools.get_ip(), port=config['port'])
