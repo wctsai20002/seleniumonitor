@@ -113,7 +113,10 @@ class WebFetcher():
 
         self.fetch_process = Process(target=self.get_page)
         self.fetch_process.start()
-
+    
+    def __del__(self):
+        self.fetch_process.terminate()
+    
     def get_page(self):
         while True:
             web_container = self.candidates.get(True)
@@ -139,6 +142,9 @@ class Timer():
         self.clock_process = Process(target=self.clock)
         self.clock_process.start()
     
+    def __del__(self):
+        self.clock_process.terminate()
+
     def clock(self):
         while True:
             time.sleep(self.polling_interval)
@@ -210,7 +216,10 @@ class Saver():
 
         self.store_process = Process(target=self.store)
         self.store_process.start()
-
+    
+    def __del__(self):
+        self.store_process.terminate()
+    
     def store(self):
         while True:
             web_container = self.nonupdated.get(True)
