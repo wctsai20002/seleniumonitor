@@ -98,11 +98,7 @@ def settings_page():
             flask_login.logout_user()
 
     elif request.method == 'POST' and form.validate():
-
-        global_setting.mails = form.notification_emails.data
-        global_setting.default_interval = form.interval.data
-        global_setting.extract_title = form.extract_title_as_title.data
-        global_setting.line_notify_token = form.line_notify_token.data
+        global_setting.update(form.notification_emails.data, form.interval.data, form.extract_title_as_title.data, form.line_notify_token.data)
         
         if form.trigger_notify.data:
             # send notify

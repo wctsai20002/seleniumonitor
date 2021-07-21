@@ -77,7 +77,7 @@ class LineNotifyMessage(Message):
     def format_message(self):
         message = '\n'
         if self.title:
-            message += self.title + '\n'
+            message += 'Url : ' + self.title + '\n'
         if self.content:
-            message += self.content + '\n'
+            message += 'Diff : ' + self.content + '\n'
         return message

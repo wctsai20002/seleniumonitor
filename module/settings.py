@@ -6,6 +6,12 @@ class GlobalSetting():
         self.line_notify_token = config['line_notify_token']
         self.extract_title = False
 
+    def update(self, mails, default_interval, extract_title, line_notify_token):
+        self.mails = mails
+        self.default_interval = default_interval
+        self.line_notify_token = line_notify_token
+        self.extract_title = extract_title
+
 class ContainerSetting():
     def __init__(self, url, interval):
         self.url = url
