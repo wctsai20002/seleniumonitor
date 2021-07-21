@@ -1,6 +1,5 @@
 import os
 import time
-import pickle
 import shelve
 import hashlib
 import requests
@@ -265,7 +264,7 @@ class WebContainer():
         changed = False
         latest_data = PageData(html)
         
-        if self.get_latest_history().checksum != latest_data.checksum:
+        if len(self.history) and self.get_latest_history().checksum != latest_data.checksum:
             latest_data.changed = True
             self.history.append(latest_data)
             changed = True
@@ -283,7 +282,7 @@ class WebContainer():
         self.encoding = requests.get(self.setting.url).encoding
     
     def get_latest_history(self):
-        return self.history[-1]
+        return self.history[-1] if len(self.history) else None
     
     def get_previous_history(self, index=None):
         index = -2 if index == None else index
