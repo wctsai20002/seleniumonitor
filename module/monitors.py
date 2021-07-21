@@ -29,7 +29,13 @@ class SeleniumScheduler():
 
     def get_duties(self, tag=None):
         all_duties = [web_container for atom in self.atoms for web_container in atom.timer.duties if not tag or tag in web_container.setting.tags]
-        return all_duties
+        change_times = [web_container.get_latest_changed() for web_container in all_duties]
+        for index, change_time in enumerate(change_times):
+            if change_time == None:
+                change_times[index] = float('inf')
+        
+        sorted_duties = [web_container for _, web_container in sorted(zip(change_times, all_duties), reverse=True)]
+        return sorted_duties
 
     def get_tags(self):
         all_duties = self.get_duties()
