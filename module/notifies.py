@@ -70,7 +70,6 @@ class MailNotifier(Notifier):
         commands = [part_command + mail for mail in list(self.mails)]
         for command in commands:
             try:
-                print(command)
                 os.system(command)
             except Exception as e:
                 print(e)
@@ -79,9 +78,11 @@ class MailNotifier(Notifier):
         self.mails[ : ] = mails
 
 class Message():
-    def __init__(self, config, web_container):
+    def __init__(self, config, web_container, flag):
+        self.flag = flag
         self.config = config
         self.web_container = web_container
+        self.make_text()
     
     @abc.abstractmethod
     def set_text(self, title, content):
@@ -97,10 +98,7 @@ class Message():
 
 class LineNotifyMessage(Message):
     def __init__(self, config, web_container):
-        self.flag = 0
-        self.config = config
-        self.web_container = web_container
-        self.make_text()
+        super().__init__(config, web_container, flag=0)
     
     def set_text(self, title, content):
         self.title = title
@@ -122,17 +120,14 @@ class LineNotifyMessage(Message):
 
 class MailMessage(Message):
     def __init__(self, config, web_container):
-        self.flag = 1
-        self.config = config
-        self.web_container = web_container
-        self.make_text()
+        super().__init__(config, web_container, flag=1)
 
     def set_text(self, title, content):
         self.title = title
         self.content = content
     
     def make_text(self):
-        title = '【Hospital Notifier】 ' + self.web_container.setting.title
+        title = '[Hospital Notifier] : ' + self.web_container.setting.title
         origin_url = str(self.web_container.setting.url)
         diff_url = 'http://' + self.config['ip'] + ':' + str(self.config['port']) + '/diff/'
         diff_url += str(self.web_container.id)
