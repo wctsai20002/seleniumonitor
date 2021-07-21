@@ -99,6 +99,7 @@ def settings_page():
 
     elif request.method == 'POST' and form.validate():
         global_setting.update(form.notification_emails.data, form.interval.data, form.extract_title_as_title.data, form.line_notify_token.data)
+        selenium_scheduler.global_setting_update(global_setting)
         
         if form.trigger_notify.data:
             # send notify
@@ -261,6 +262,6 @@ def api_watch_checknow():
 if __name__ == '__main__':
     config['ip'] = tools.get_ip()
     global_setting = settings.GlobalSetting(config)
-    selenium_scheduler = monitors.SeleniumScheduler(config)
+    selenium_scheduler = monitors.SeleniumScheduler(config, global_setting)
 
     app.run(host=config['ip'], port=config['port'])

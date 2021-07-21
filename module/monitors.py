@@ -12,10 +12,11 @@ from module import settings
 from module import notifies
 
 class SeleniumScheduler():
-    def __init__(self, config):
+    def __init__(self, config, global_setting):
         self.config = config
+        self.global_setting = global_setting
         self.atom_nums = self.config['atom_nums']
-        self.atoms = [Atom(self.config, atom_index) for atom_index in range(self.atom_nums)]
+        self.atoms = [Atom(self.config, global_setting, atom_index) for atom_index in range(self.atom_nums)]
         self.load_data()
 
     def register(self, web_container):
@@ -87,9 +88,16 @@ class SeleniumScheduler():
             for web_container in web_containers:
                 self.recheck(web_container.id)
 
+    def global_setting_update(self, global_setting):
+        self.global_setting = global_setting
+        for atom_index, atom in enumerate(self.atoms):
+            self.atoms[atom_index].global_setting = global_setting
+            self.atoms[atom_index].sender.update(global_setting)
+
 class Atom():
-    def __init__(self, config, atom_index):
+    def __init__(self, config, global_setting, atom_index):
         self.config = config
+        self.global_setting = global_setting
 
         self.candidates = Queue()
         self.nonupdated = Queue()
@@ -101,7 +109,8 @@ class Atom():
         self.timer = Timer(self.config, self.candidates, self.completed)
         self.fetcher = WebFetcher(self.config, self.candidates, self.nonupdated, self.messages)
         self.saver = Saver(self.config, self.nonupdated, self.completed, self.atom_index)
-        self.sender = notifies.NotifySender(notifies.LineNotifyNotifier(config['line_notify_token']), self.messages)
+
+        self.sender = notifies.NotifySender(self.messages, notifies.LineNotifyNotifier(global_setting.line_notify_token), notifies.MailNotifier(global_setting.mails))
 
 class WebFetcher():
     def __init__(self, config, candidates, nonupdated, messages):
@@ -130,6 +139,7 @@ class WebFetcher():
             changed = web_container.update(driver.page_source)
             if changed:
                 self.messages.put(notifies.LineNotifyMessage(self.config, web_container))
+                self.messages.put(notifies.MailMessage(self.config, web_container))
             driver.close()
 
             self.nonupdated.put(web_container)

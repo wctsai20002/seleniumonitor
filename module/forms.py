@@ -126,7 +126,7 @@ def populate_setting_form(form, config, global_setting):
     form.interval.data = global_setting.default_interval
     form.extract_title_as_title.data = global_setting.extract_title
     form.notification_emails.data = global_setting.mails
-    form.line_notify_token.data = make_hidden_token(config['line_notify_token'])
+    form.line_notify_token.data = make_hidden_token(global_setting.line_notify_token)
 
 def make_hidden_token(token):
     token_size = len(token)
