@@ -1,0 +1,8 @@
+selenium
+requests
+python-dotenv
+flask~= 1.0
+timeago ~= 1.0
+wtforms ~= 2.3.3
+inscriptis ~= 1.1
+flask-login ~= 0.5
